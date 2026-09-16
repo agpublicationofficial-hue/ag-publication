@@ -10,32 +10,89 @@ export default function AuthorResetPassword() {
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
 
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    const checkSession = async () => {
-      const supabase = createClient();
+    let mounted = true;
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    const setupRecoverySession = async () => {
+      try {
+        const supabase = createClient();
 
-      if (!session) {
-        setErrorMessage(
-          "This password reset link is invalid or has expired."
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session) {
+          if (mounted) {
+            setCheckingSession(false);
+          }
+          return;
+        }
+
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange(
+          (event, currentSession) => {
+            if (!mounted) return;
+
+            if (
+              event === "PASSWORD_RECOVERY" ||
+              currentSession
+            ) {
+              setCheckingSession(false);
+              setErrorMessage("");
+            }
+          }
         );
-      }
 
-      setCheckingSession(false);
+        setTimeout(async () => {
+          if (!mounted) return;
+
+          const {
+            data: { session: latestSession },
+          } = await supabase.auth.getSession();
+
+          if (!mounted) return;
+
+          if (!latestSession) {
+            setErrorMessage(
+              "This password reset link is invalid or has expired."
+            );
+          }
+
+          setCheckingSession(false);
+          subscription.unsubscribe();
+        }, 1000);
+      } catch (error) {
+        console.error(
+          "Password recovery session error:",
+          error
+        );
+
+        if (mounted) {
+          setErrorMessage(
+            "Unable to verify this password reset link. Please request a new one."
+          );
+          setCheckingSession(false);
+        }
+      }
     };
 
-    checkSession();
+    setupRecoverySession();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleUpdatePassword = async () => {
@@ -61,29 +118,56 @@ export default function AuthorResetPassword() {
 
     setLoading(true);
 
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    const { error } = await supabase.auth.updateUser({
-      password,
-    });
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    setLoading(false);
+      if (!session) {
+        setErrorMessage(
+          "Your password reset session is invalid or has expired. Please request a new reset link."
+        );
+        setLoading(false);
+        return;
+      }
 
-    if (error) {
-      setErrorMessage(error.message);
-      return;
+      const { error } =
+        await supabase.auth.updateUser({
+          password,
+        });
+
+      if (error) {
+        setErrorMessage(error.message);
+        setLoading(false);
+        return;
+      }
+
+      setMessage(
+        "Your password has been updated successfully."
+      );
+
+      setPassword("");
+      setConfirmPassword("");
+
+      await supabase.auth.signOut();
+
+      setTimeout(() => {
+        router.replace("/author-login");
+      }, 2000);
+    } catch (error) {
+      console.error(
+        "Password update error:",
+        error
+      );
+
+      setErrorMessage(
+        "Something went wrong while updating your password. Please try again."
+      );
+
+      setLoading(false);
     }
-
-    setMessage(
-      "Your password has been updated successfully."
-    );
-
-    setPassword("");
-    setConfirmPassword("");
-
-    setTimeout(() => {
-      router.push("/author-login");
-    }, 2000);
   };
 
   if (checkingSession) {
@@ -102,11 +186,8 @@ export default function AuthorResetPassword() {
 
   return (
     <main className="min-h-screen bg-[#f7f4ee] text-[#171717]">
-
-      {/* Navbar */}
       <nav className="border-b border-black/10 bg-[#f7f4ee]/95">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-
           <Link
             href="/"
             className="shrink-0"
@@ -124,23 +205,17 @@ export default function AuthorResetPassword() {
           >
             ← Back to Login
           </Link>
-
         </div>
       </nav>
 
-      {/* Main */}
       <section className="flex min-h-[calc(100vh-81px)] items-center justify-center px-5 py-12">
-
         <div className="w-full max-w-md">
-
-          {/* Card */}
           <div className="rounded-3xl border border-black/10 bg-white p-7 shadow-[0_25px_80px_rgba(0,0,0,0.08)] sm:p-10">
-
-            {/* Heading */}
             <div className="mb-8 text-center">
-
               <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#171717] text-white">
-                <span className="text-xl">🔒</span>
+                <span className="text-xl">
+                  🔒
+                </span>
               </div>
 
               <p className="mb-3 text-xs font-medium uppercase tracking-[0.25em] text-black/40">
@@ -154,17 +229,14 @@ export default function AuthorResetPassword() {
               <p className="mt-3 text-sm leading-6 text-black/50">
                 Enter a new password for your A&G author account.
               </p>
-
             </div>
 
-            {/* Error */}
             {errorMessage && (
               <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {errorMessage}
               </div>
             )}
 
-            {/* Success */}
             {message && (
               <div className="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
                 {message}
@@ -173,10 +245,7 @@ export default function AuthorResetPassword() {
 
             {!errorMessage && !message && (
               <div className="space-y-6">
-
-                {/* New Password */}
                 <div>
-
                   <label
                     htmlFor="password"
                     className="mb-2 block text-sm font-medium"
@@ -185,7 +254,6 @@ export default function AuthorResetPassword() {
                   </label>
 
                   <div className="relative">
-
                     <input
                       id="password"
                       type={
@@ -198,26 +266,27 @@ export default function AuthorResetPassword() {
                         setPassword(e.target.value)
                       }
                       placeholder="Enter new password"
+                      autoComplete="new-password"
                       className="w-full rounded-xl border border-black/15 bg-[#faf9f6] px-4 py-3.5 pr-20 text-sm outline-none transition placeholder:text-black/30 focus:border-black focus:bg-white"
                     />
 
                     <button
                       type="button"
                       onClick={() =>
-                        setShowPassword(!showPassword)
+                        setShowPassword(
+                          !showPassword
+                        )
                       }
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-black/45 hover:text-black"
                     >
-                      {showPassword ? "Hide" : "Show"}
+                      {showPassword
+                        ? "Hide"
+                        : "Show"}
                     </button>
-
                   </div>
-
                 </div>
 
-                {/* Confirm Password */}
                 <div>
-
                   <label
                     htmlFor="confirmPassword"
                     className="mb-2 block text-sm font-medium"
@@ -226,7 +295,6 @@ export default function AuthorResetPassword() {
                   </label>
 
                   <div className="relative">
-
                     <input
                       id="confirmPassword"
                       type={
@@ -236,9 +304,12 @@ export default function AuthorResetPassword() {
                       }
                       value={confirmPassword}
                       onChange={(e) =>
-                        setConfirmPassword(e.target.value)
+                        setConfirmPassword(
+                          e.target.value
+                        )
                       }
                       placeholder="Confirm new password"
+                      autoComplete="new-password"
                       className="w-full rounded-xl border border-black/15 bg-[#faf9f6] px-4 py-3.5 pr-20 text-sm outline-none transition placeholder:text-black/30 focus:border-black focus:bg-white"
                     />
 
@@ -255,14 +326,10 @@ export default function AuthorResetPassword() {
                         ? "Hide"
                         : "Show"}
                     </button>
-
                   </div>
-
                 </div>
 
-                {/* Password Requirements */}
                 <div className="rounded-xl bg-[#faf9f6] px-4 py-3">
-
                   <p className="text-xs font-medium text-black/60">
                     Password requirements
                   </p>
@@ -270,10 +337,8 @@ export default function AuthorResetPassword() {
                   <p className="mt-1 text-xs leading-5 text-black/40">
                     Use at least 6 characters.
                   </p>
-
                 </div>
 
-                {/* Update Button */}
                 <button
                   type="button"
                   onClick={handleUpdatePassword}
@@ -284,31 +349,23 @@ export default function AuthorResetPassword() {
                     ? "Updating password..."
                     : "Update Password"}
                 </button>
-
               </div>
             )}
 
-            {/* Login Link */}
             <div className="mt-8 text-center">
-
               <Link
                 href="/author-login"
                 className="text-sm font-medium text-black/50 transition hover:text-black"
               >
                 Back to Author Login
               </Link>
-
             </div>
-
           </div>
 
-          {/* Footer */}
           <p className="mt-6 text-center text-xs text-black/35">
             A&G PUBLICATION • AUTHOR PORTAL
           </p>
-
         </div>
-
       </section>
     </main>
   );
