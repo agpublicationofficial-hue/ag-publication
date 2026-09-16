@@ -6,9 +6,25 @@ export async function proxy(request: NextRequest) {
     request,
   });
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  const supabaseKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // Prevent Proxy from crashing if Supabase environment variables
+  // are missing or incorrectly configured.
+  if (!supabaseUrl || !supabaseKey) {
+    console.error(
+      "Supabase environment variables are missing in Proxy."
+    );
+
+    return response;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll() {
@@ -24,9 +40,15 @@ export async function proxy(request: NextRequest) {
             request,
           });
 
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
+          cookiesToSet.forEach(
+            ({ name, value, options }) => {
+              response.cookies.set(
+                name,
+                value,
+                options
+              );
+            }
+          );
         },
       },
     }
@@ -52,11 +74,12 @@ export async function proxy(request: NextRequest) {
     "/support",
   ];
 
-  const isProtectedAuthorRoute = protectedAuthorRoutes.some(
-    (route) =>
-      pathname === route ||
-      pathname.startsWith(`${route}/`)
-  );
+  const isProtectedAuthorRoute =
+    protectedAuthorRoutes.some(
+      (route) =>
+        pathname === route ||
+        pathname.startsWith(`${route}/`)
+    );
 
   /*
    * ADMIN PROTECTED ROUTES
@@ -67,11 +90,12 @@ export async function proxy(request: NextRequest) {
     "/admin-support",
   ];
 
-  const isProtectedAdminRoute = protectedAdminRoutes.some(
-    (route) =>
-      pathname === route ||
-      pathname.startsWith(`${route}/`)
-  );
+  const isProtectedAdminRoute =
+    protectedAdminRoutes.some(
+      (route) =>
+        pathname === route ||
+        pathname.startsWith(`${route}/`)
+    );
 
   /*
    * AUTHOR ROUTES
@@ -95,11 +119,11 @@ export async function proxy(request: NextRequest) {
    * ADMIN ROUTES
    *
    * If there is no Supabase session,
-   * send the user to ADMIN Login,
-   * NOT Author Login.
+   * send the user to Admin Login.
    */
   if (isProtectedAdminRoute && !user) {
-    const adminLoginUrl = request.nextUrl.clone();
+    const adminLoginUrl =
+      request.nextUrl.clone();
 
     adminLoginUrl.pathname = "/admin-login";
     adminLoginUrl.searchParams.set(
@@ -107,7 +131,9 @@ export async function proxy(request: NextRequest) {
       "login_required"
     );
 
-    return NextResponse.redirect(adminLoginUrl);
+    return NextResponse.redirect(
+      adminLoginUrl
+    );
   }
 
   return response;
