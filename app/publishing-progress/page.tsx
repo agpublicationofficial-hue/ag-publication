@@ -684,12 +684,13 @@ export default function PublishingProgressPage() {
 
             <Link
               href="/author-dashboard"
-              className="text-xl font-semibold tracking-tight"
+              className="block shrink-0"
             >
-              A&G{" "}
-              <span className="font-light">
-                PUBLICATION
-              </span>
+              <img
+                src="/ag-logo.png"
+                alt="A&G Publication"
+                className="h-auto w-[150px] object-contain"
+              />
             </Link>
 
             <div className="mt-2 flex items-center gap-2">

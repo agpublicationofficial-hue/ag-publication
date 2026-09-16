@@ -5,27 +5,37 @@ export default function AboutPage() {
     <main className="min-h-screen bg-[#f7f4ee] text-[#171717]">
       {/* NAVBAR */}
       <nav className="border-b border-black/10 bg-[#f6f3ed]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-          <Link href="/" className="shrink-0">
-            <p className="text-xl font-bold tracking-[0.18em]">A&G</p>
-            <p className="text-[10px] tracking-[0.32em] text-black/55">
-              PUBLICATION
-            </p>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
+          {/* A&G LOGO */}
+          <Link
+            href="/"
+            className="shrink-0 transition-opacity hover:opacity-80"
+            aria-label="A&G Publication Home"
+          >
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-16 w-16 object-contain sm:h-[72px] sm:w-[72px]"
+            />
           </Link>
 
           <div className="hidden items-center gap-7 text-sm md:flex">
             <Link href="/books" className="hover:text-black/50">
               Books
             </Link>
+
             <Link href="/publishing" className="hover:text-black/50">
               Publishing Services
             </Link>
+
             <Link href="/about" className="font-medium">
               About Us
             </Link>
+
             <Link href="/publishing" className="hover:text-black/50">
               Writing Challenge
             </Link>
+
             <Link href="/contact" className="hover:text-black/50">
               Contact
             </Link>

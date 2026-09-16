@@ -4,57 +4,68 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+
 const supabase = createClient();
+
 export default function AuthorSignup() {
   const router = useRouter();
-const [agreed, setAgreed] = useState(false);
+
+  const [agreed, setAgreed] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-const [email, setEmail] = useState("");
-const [password, setPassword] = useState("");
-const [fullName, setFullName] = useState("");
-const [phone, setPhone] = useState("");
-const handleSignup = async () => {
-  if (!agreed) {
-    alert("Please agree to the A&G Publication terms and author publishing policies.");
-    return;
-  }
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
 
-  const { data, error } = await supabase.auth.signUp({
-  email,
-  password,
-  options: {
-    data: {
-      full_name: fullName,
-      phone: phone,
-    },
-  },
-});
+  const handleSignup = async () => {
+    if (!agreed) {
+      alert(
+        "Please agree to the A&G Publication terms and author publishing policies."
+      );
+      return;
+    }
 
-  if (error) {
-    alert(error.message);
-    return;
-  }
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          phone: phone,
+        },
+      },
+    });
 
- if (data.user) {
-  alert("Account created successfully!");
+    if (error) {
+      alert(error.message);
+      return;
+    }
 
-  const { data: sessionData } = await supabase.auth.getSession();
+    if (data.user) {
+      alert("Account created successfully!");
 
-  if (sessionData.session) {
-    router.replace("/author-dashboard");
-  } else {
-    alert("Account created, please sign in.");
-    router.replace("/author-login");
-  }
-}
-};
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (sessionData.session) {
+        router.replace("/author-dashboard");
+      } else {
+        alert("Account created, please sign in.");
+        router.replace("/author-login");
+      }
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#f7f4ee] text-[#171717]">
       {/* Navbar */}
       <nav className="border-b border-black/10 bg-[#f7f4ee]/95">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-          <Link href="/" className="text-2xl font-semibold tracking-tight">
-            A&G <span className="font-light">PUBLICATION</span>
+          <Link href="/" className="shrink-0">
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
           </Link>
 
           <Link
@@ -69,7 +80,6 @@ const handleSignup = async () => {
       {/* Signup */}
       <section className="px-5 py-12 sm:py-16">
         <div className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl border border-black/10 bg-white shadow-[0_25px_80px_rgba(0,0,0,0.08)] lg:grid-cols-2">
-
           {/* Left */}
           <div className="relative hidden min-h-[700px] overflow-hidden bg-[#1d1d1b] p-10 text-white lg:flex lg:flex-col lg:justify-between">
             <div>
@@ -123,7 +133,6 @@ const handleSignup = async () => {
           {/* Right */}
           <div className="px-7 py-12 sm:px-12 lg:px-14">
             <div className="mx-auto max-w-md">
-
               <div className="mb-9">
                 <p className="mb-3 text-xs font-medium uppercase tracking-[0.25em] text-black/40">
                   Begin your journey
@@ -140,13 +149,12 @@ const handleSignup = async () => {
               </div>
 
               <form
-               className="space-y-5"
-               onSubmit={(e) => {
-                e.preventDefault();
-               handleSignup();
-               }}
-                 >
-
+                className="space-y-5"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSignup();
+                }}
+              >
                 {/* Name */}
                 <div>
                   <label
@@ -240,12 +248,12 @@ const handleSignup = async () => {
                 {/* Terms */}
                 <div className="flex items-start gap-3 pt-1">
                   <input
-                 id="terms"
-                 type="checkbox"
+                    id="terms"
+                    type="checkbox"
                     checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
-                 className="mt-0.5 h-4 w-4 rounded border-black/20"
-                   />
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-black/20"
+                  />
 
                   <label
                     htmlFor="terms"

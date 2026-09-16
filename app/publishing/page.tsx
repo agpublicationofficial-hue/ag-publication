@@ -37,11 +37,12 @@ export default function PublishingPage() {
       {/* HEADER */}
       <header className="border-b border-black/10 bg-[#f7f4ee]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-          <a href="/" className="group">
-            <p className="text-xl font-bold tracking-[0.18em]">A&G</p>
-            <p className="text-[10px] tracking-[0.32em] text-black/50">
-              PUBLICATION
-            </p>
+          <a href="/" className="group shrink-0">
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
           </a>
 
           <div className="hidden items-center gap-8 text-sm md:flex">
@@ -214,9 +215,12 @@ export default function PublishingPage() {
             professionally published book.
           </p>
 
-          <button className="mt-9 rounded-full bg-[#171717] px-8 py-4 text-sm font-medium text-white transition hover:bg-black/75">
+          <a
+            href="/submit-manuscript"
+            className="mt-9 inline-block rounded-full bg-[#171717] px-8 py-4 text-sm font-medium text-white transition hover:bg-black/75"
+          >
             Submit Your Manuscript
-          </button>
+          </a>
         </div>
       </section>
 

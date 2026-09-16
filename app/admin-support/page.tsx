@@ -202,14 +202,14 @@ export default function AdminSupportPage() {
       {/* HEADER */}
       <header className="border-b border-black/10 bg-white/70">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 sm:px-8 lg:px-10">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-black/40">
-              A&G PUBLICATION
-            </p>
 
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-              Support Queries
-            </h1>
+          {/* A&G LOGO */}
+          <div className="shrink-0">
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
           </div>
 
           <div className="flex flex-wrap items-center gap-3">

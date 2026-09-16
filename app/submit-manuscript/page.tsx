@@ -1128,9 +1128,13 @@ export default function SubmitManuscriptPage() {
 
             <Link
               href="/"
-              className="text-2xl font-bold text-gray-900"
+              className="shrink-0"
             >
-              A&G PUBLICATION
+              <img
+                src="/ag-logo.png"
+                alt="A&G Publication"
+                className="h-auto w-[150px] object-contain"
+              />
             </Link>
 
             <Link

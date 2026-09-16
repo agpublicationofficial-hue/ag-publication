@@ -1,4 +1,4 @@
- const books = [
+const books = [
   {
     title: "The Soul Recovery",
     author: "Adarsh Pal",
@@ -44,58 +44,67 @@ export default function Home() {
     <main className="min-h-screen bg-[#f7f4ee] text-[#171717]">
       {/* NAVBAR */}
       <nav className="border-b border-black/10 bg-[#f6f3ed]">
-  <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
+          {/* Logo */}
+          <a
+            href="/"
+            className="flex shrink-0 items-center transition-opacity hover:opacity-80"
+            aria-label="A&G Publication Home"
+          >
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-16 w-16 object-contain sm:h-[72px] sm:w-[72px]"
+            />
+          </a>
 
-    {/* Logo */}
-    <a href="/" className="shrink-0">
-      <p className="text-xl font-bold tracking-[0.18em]">A&G</p>
-      <p className="text-[10px] tracking-[0.32em] text-black/55">
-        PUBLICATION
-      </p>
-    </a>
+          {/* Navigation */}
+          <div className="hidden items-center gap-7 text-sm md:flex">
+            <a href="/books" className="transition hover:text-black/50">
+              Books
+            </a>
 
-    {/* Navigation */}
-    <div className="hidden items-center gap-7 text-sm md:flex">
-      <a href="/books" className="transition hover:text-black/50">
-        Books
-      </a>
+            <a
+              href="/publishing"
+              className="transition hover:text-black/50"
+            >
+              Publishing Services
+            </a>
 
-      <a href="/publishing" className="transition hover:text-black/50">
-        Publishing Services
-      </a>
+            <a href="/about" className="transition hover:text-black/50">
+              About Us
+            </a>
 
-      <a href="/about" className="transition hover:text-black/50">
-        About Us
-      </a>
+            <a
+              href="/writing-challenge"
+              className="transition hover:text-black/50"
+            >
+              Writing Challenge
+            </a>
 
-      <a href="/writing-challenge" className="transition hover:text-black/50">
-        Writing Challenge
-      </a>
+            <a href="/contact" className="transition hover:text-black/50">
+              Contact
+            </a>
+          </div>
 
-      <a href="/contact" className="transition hover:text-black/50">
-        Contact
-      </a>
-    </div>
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+            <a
+              href="/author-login"
+              className="hidden rounded-full border border-black/20 px-5 py-2.5 text-sm font-medium transition hover:bg-white sm:inline-flex"
+            >
+              Author Login
+            </a>
 
-    {/* Actions */}
-    <div className="flex items-center gap-3">
-      <a
-        href="/author-login"
-        className="hidden rounded-full border border-black/20 px-5 py-2.5 text-sm font-medium transition hover:bg-white sm:inline-flex"
-      >
-        Author Login
-      </a>
-
-      <a
-        href="/submit-manuscript"
-        className="rounded-full bg-[#171717] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-black/75"
-      >
-        Publish With Us
-      </a>
-    </div>
-
-  </div>
-</nav>
+            <a
+              href="/submit-manuscript"
+              className="rounded-full bg-[#171717] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-black/75"
+            >
+              Publish With Us
+            </a>
+          </div>
+        </div>
+      </nav>
 
       {/* HERO */}
       <section className="mx-auto grid max-w-7xl gap-12 px-6 py-20 lg:grid-cols-2 lg:px-10 lg:py-28">
@@ -201,7 +210,7 @@ export default function Home() {
             <h2 className="mt-3 font-serif text-5xl">Featured Books</h2>
           </div>
 
-          <a href="#" className="text-sm underline underline-offset-4">
+          <a href="/books" className="text-sm underline underline-offset-4">
             View all books
           </a>
         </div>
@@ -211,7 +220,13 @@ export default function Home() {
             <article key={book.title} className="group">
               <div className="flex h-[390px] items-center justify-center bg-[#e4ded3]">
                 <div
-                  className={`h-[285px] w-[190px] bg-[#${index === 0 ? "332f2b" : index === 1 ? "242b35" : "41352b"}] p-5 shadow-xl transition duration-500 group-hover:-translate-y-2`}
+                  className={`h-[285px] w-[190px] ${
+                    index === 0
+                      ? "bg-[#332f2b]"
+                      : index === 1
+                        ? "bg-[#242b35]"
+                        : "bg-[#41352b]"
+                  } p-5 shadow-xl transition duration-500 group-hover:-translate-y-2`}
                 >
                   <div className="flex h-full flex-col justify-between border border-white/20 p-4 text-white">
                     <p className="text-[8px] tracking-[0.25em]">
@@ -302,7 +317,7 @@ export default function Home() {
           </h2>
 
           <a
-           href="/submit-manuscript"
+            href="/submit-manuscript"
             className="mt-9 inline-block rounded-full bg-[#171717] px-8 py-4 text-sm font-medium text-white"
           >
             Submit Your Manuscript
@@ -314,11 +329,19 @@ export default function Home() {
       <footer id="contact" className="border-t border-black/10 bg-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-3 lg:px-10">
           <div>
-            <p className="text-xl font-bold tracking-[0.18em]">A&G</p>
-            <p className="mt-1 text-[10px] tracking-[0.32em] text-black/50">
-              PUBLICATION
-            </p>
-            <p className="mt-5 max-w-xs text-sm leading-6 text-black/50">
+            <a
+              href="/"
+              className="inline-flex transition-opacity hover:opacity-80"
+              aria-label="A&G Publication Home"
+            >
+              <img
+                src="/ag-logo.png"
+                alt="A&G Publication"
+                className="h-24 w-24 object-contain"
+              />
+            </a>
+
+            <p className="mt-3 max-w-xs text-sm leading-6 text-black/50">
               Publishing stories, ideas and voices that deserve to be heard.
             </p>
           </div>
@@ -358,4 +381,4 @@ export default function Home() {
       </footer>
     </main>
   );
-}         
+}

@@ -25,10 +25,11 @@ export default function WritingChallenge() {
       <nav className="border-b border-black/10 bg-[#f6f3ed]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
           <Link href="/" className="shrink-0">
-            <p className="text-xl font-bold tracking-[0.18em]">A&G</p>
-            <p className="text-[10px] tracking-[0.32em] text-black/55">
-              PUBLICATION
-            </p>
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
           </Link>
 
           <div className="hidden items-center gap-7 text-sm md:flex">

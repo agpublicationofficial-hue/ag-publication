@@ -317,9 +317,7 @@ export default function ProfilePage() {
   }
 
   function removeExternalBook(index: number) {
-    setExternalBooks((current) =>
-      current.filter((_, i) => i !== index)
-    );
+    setExternalBooks((current) => current.filter((_, i) => i !== index));
   }
 
   function addService() {
@@ -680,15 +678,18 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-[#f5f6fa] text-gray-900">
       <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-[260px] bg-[#111318] text-white flex-col">
         <div className="px-6 py-7 border-b border-white/10">
-          <h1 className="text-2xl font-black">
-            A&G
-          </h1>
+          <Link
+            href="/"
+            className="block w-fit"
+          >
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
+          </Link>
 
-          <p className="text-sm text-gray-400">
-            PUBLICATION
-          </p>
-
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-2">
             Author Panel
           </p>
         </div>

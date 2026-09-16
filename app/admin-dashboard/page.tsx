@@ -339,10 +339,6 @@ export default function AdminDashboard() {
       channel = supabase
         .channel("admin-dashboard-realtime")
 
-        // ---------------------------------------
-        // MANUSCRIPTS REALTIME
-        // ---------------------------------------
-
         .on(
           "postgres_changes",
           {
@@ -380,10 +376,6 @@ export default function AdminDashboard() {
             }
           }
         )
-
-        // ---------------------------------------
-        // BOOKS REALTIME
-        // ---------------------------------------
 
         .on(
           "postgres_changes",
@@ -423,10 +415,6 @@ export default function AdminDashboard() {
           }
         )
 
-        // ---------------------------------------
-        // DAILY SALES REALTIME
-        // ---------------------------------------
-
         .on(
           "postgres_changes",
           {
@@ -441,10 +429,6 @@ export default function AdminDashboard() {
           }
         )
 
-        // ---------------------------------------
-        // AUTHORS REALTIME
-        // ---------------------------------------
-
         .on(
           "postgres_changes",
           {
@@ -458,10 +442,6 @@ export default function AdminDashboard() {
             await fetchManuscripts();
           }
         )
-
-        // ---------------------------------------
-        // BANK DETAILS REALTIME
-        // ---------------------------------------
 
         .on(
           "postgres_changes",
@@ -1115,17 +1095,21 @@ export default function AdminDashboard() {
       ===================================== */}
 
       <header className="border-b border-black/10 bg-white/60">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-6 py-5 lg:px-10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-6 py-4 lg:px-10">
 
-          <div>
-            <p className="text-xl font-bold tracking-[0.18em]">
-              A&G
-            </p>
-
-            <p className="text-[10px] tracking-[0.32em] text-black/50">
-              PUBLICATION
-            </p>
-          </div>
+          {/* A&G LOGO */}
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="shrink-0 transition-opacity hover:opacity-80"
+            aria-label="A&G Publication Home"
+          >
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-16 w-16 object-contain sm:h-[72px] sm:w-[72px]"
+            />
+          </button>
 
           <div className="flex flex-wrap items-center gap-3">
 
@@ -1990,9 +1974,7 @@ export default function AdminDashboard() {
 
               </div>
 
-              {/* =====================================
-                  BANK DETAILS
-              ===================================== */}
+              {/* BANK DETAILS */}
 
               {(() => {
                 const details =

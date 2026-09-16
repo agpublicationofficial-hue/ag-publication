@@ -74,9 +74,13 @@ export default function RoyaltiesPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <a
             href="/"
-            className="text-xl font-semibold tracking-[0.2em]"
+            className="block shrink-0"
           >
-            A&G
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
           </a>
 
           <nav className="hidden gap-8 text-sm md:flex">

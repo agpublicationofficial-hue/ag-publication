@@ -121,14 +121,14 @@ export default function AdminLogin() {
     <main className="min-h-screen bg-[#f7f4ee] text-[#171717]">
       <nav className="border-b border-black/10 bg-[#f7f4ee]/95">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-          <Link
-            href="/"
-            className="text-2xl font-semibold tracking-tight"
-          >
-            A&G{" "}
-            <span className="font-light">
-              PUBLICATION
-            </span>
+
+          {/* A&G LOGO */}
+          <Link href="/" className="shrink-0">
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
           </Link>
 
           <Link
@@ -142,6 +142,7 @@ export default function AdminLogin() {
 
       <section className="flex min-h-[calc(100vh-81px)] items-center justify-center px-5 py-12">
         <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-black/10 bg-white shadow-[0_25px_80px_rgba(0,0,0,0.08)] lg:grid-cols-2">
+
           {/* LEFT PANEL */}
 
           <div className="relative hidden min-h-[650px] overflow-hidden bg-[#1d1d1b] p-10 text-white lg:flex lg:flex-col lg:justify-between">
@@ -188,6 +189,7 @@ export default function AdminLogin() {
 
           <div className="flex min-h-[650px] flex-col justify-center px-7 py-12 sm:px-12 lg:px-14">
             <div className="mx-auto w-full max-w-md">
+
               <div className="mb-10">
                 <p className="mb-3 text-xs font-medium uppercase tracking-[0.25em] text-black/40">
                   Restricted access
@@ -331,6 +333,7 @@ export default function AdminLogin() {
                 <br />
                 Secure Administration Portal
               </p>
+
             </div>
           </div>
         </div>

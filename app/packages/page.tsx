@@ -7,7 +7,8 @@ const packages = [
     name: "Starter",
     price: "₹899",
     amount: 899,
-    description: "For new writers taking their first step toward publishing.",
+    description:
+      "For new writers taking their first step toward publishing.",
     features: [
       "Basic manuscript review",
       "Author consultation",
@@ -19,7 +20,8 @@ const packages = [
     name: "Basic",
     price: "₹1,899",
     amount: 1899,
-    description: "A simple publishing package for authors ready to get started.",
+    description:
+      "A simple publishing package for authors ready to get started.",
     features: [
       "Manuscript review",
       "Basic proofreading",
@@ -32,7 +34,8 @@ const packages = [
     name: "Professional",
     price: "₹5,999",
     amount: 5999,
-    description: "A complete package for authors who want a polished book.",
+    description:
+      "A complete package for authors who want a polished book.",
     features: [
       "Manuscript evaluation",
       "Editing & proofreading",
@@ -47,7 +50,8 @@ const packages = [
     name: "Premium",
     price: "₹8,999",
     amount: 8999,
-    description: "Our most complete publishing experience for serious authors.",
+    description:
+      "Our most complete publishing experience for serious authors.",
     features: [
       "Advanced manuscript evaluation",
       "Professional editing",
@@ -121,7 +125,8 @@ export default function PackagesPage() {
 
       const script = document.createElement("script");
 
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.src =
+        "https://checkout.razorpay.com/v1/checkout.js";
 
       script.onload = () => resolve(true);
       script.onerror = () => resolve(false);
@@ -130,7 +135,10 @@ export default function PackagesPage() {
     });
   };
 
-  const openPackageDetails = (packageName: string, amount: number) => {
+  const openPackageDetails = (
+    packageName: string,
+    amount: number
+  ) => {
     setSelectedPackage({
       name: packageName,
       amount,
@@ -171,7 +179,9 @@ export default function PackagesPage() {
       const loaded = await loadRazorpay();
 
       if (!loaded) {
-        alert("Razorpay Checkout load nahi ho paya. Please try again.");
+        alert(
+          "Razorpay Checkout load nahi ho paya. Please try again."
+        );
         setLoadingPackage(null);
         return;
       }
@@ -253,7 +263,10 @@ export default function PackagesPage() {
 
             const verifyData = await verifyResponse.json();
 
-            if (verifyResponse.ok && verifyData.success) {
+            if (
+              verifyResponse.ok &&
+              verifyData.success
+            ) {
               alert(
                 "Payment successful! Your order has been created."
               );
@@ -320,31 +333,39 @@ export default function PackagesPage() {
 
   return (
     <main className="min-h-screen bg-[#f7f4ee] text-[#171717]">
-
       {/* HEADER */}
       <header className="border-b border-black/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-
-          <a href="/" className="group">
-            <p className="text-xl font-bold tracking-[0.18em]">
-              A&G
-            </p>
-
-            <p className="text-[10px] tracking-[0.32em] text-black/50">
-              PUBLICATION
-            </p>
+          <a
+            href="/"
+            className="shrink-0"
+          >
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
           </a>
 
           <div className="hidden items-center gap-8 text-sm md:flex">
-            <a href="/" className="hover:opacity-60">
+            <a
+              href="/"
+              className="hover:opacity-60"
+            >
               Home
             </a>
 
-            <a href="/books" className="hover:opacity-60">
+            <a
+              href="/books"
+              className="hover:opacity-60"
+            >
               Books
             </a>
 
-            <a href="/publishing" className="hover:opacity-60">
+            <a
+              href="/publishing"
+              className="hover:opacity-60"
+            >
               Publishing
             </a>
           </div>
@@ -355,13 +376,11 @@ export default function PackagesPage() {
           >
             View Packages
           </a>
-
         </div>
       </header>
 
       {/* HERO */}
       <section className="mx-auto max-w-7xl px-6 py-20 text-center lg:px-10 lg:py-28">
-
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-black/45">
           Publishing Packages
         </p>
@@ -379,7 +398,6 @@ export default function PackagesPage() {
           Flexible publishing options designed for writers at
           different stages of their publishing journey.
         </p>
-
       </section>
 
       {/* PACKAGES */}
@@ -387,11 +405,8 @@ export default function PackagesPage() {
         id="packages"
         className="mx-auto max-w-7xl px-6 pb-24 lg:px-10"
       >
-
         <div className="grid gap-6 lg:grid-cols-4">
-
           {packages.map((pkg) => (
-
             <article
               key={pkg.name}
               className={`relative flex flex-col border p-7 transition duration-300 hover:-translate-y-1 ${
@@ -400,7 +415,6 @@ export default function PackagesPage() {
                   : "border-black/10 bg-white"
               }`}
             >
-
               {pkg.popular && (
                 <span className="absolute right-5 top-5 rounded-full bg-white px-3 py-1 text-[9px] font-semibold uppercase tracking-[0.15em] text-black">
                   Most Popular
@@ -456,14 +470,11 @@ export default function PackagesPage() {
               />
 
               <ul className="flex-1 space-y-4">
-
                 {pkg.features.map((feature) => (
-
                   <li
                     key={feature}
                     className="flex gap-3 text-sm leading-5"
                   >
-
                     <span
                       className={
                         pkg.popular
@@ -483,16 +494,16 @@ export default function PackagesPage() {
                     >
                       {feature}
                     </span>
-
                   </li>
-
                 ))}
-
               </ul>
 
               <button
                 onClick={() =>
-                  openPackageDetails(pkg.name, pkg.amount)
+                  openPackageDetails(
+                    pkg.name,
+                    pkg.amount
+                  )
                 }
                 disabled={
                   loadingPackage !== null ||
@@ -504,28 +515,20 @@ export default function PackagesPage() {
                     : "bg-[#171717] text-white hover:bg-black/75"
                 }`}
               >
-
                 {loadingPackage === pkg.name
                   ? "Opening Payment..."
                   : loadingAuthor
                   ? "Loading..."
                   : `Choose ${pkg.name}`}
-
               </button>
-
             </article>
-
           ))}
-
         </div>
-
       </section>
 
       {/* NOTE */}
       <section className="border-y border-black/10 bg-white">
-
         <div className="mx-auto max-w-4xl px-6 py-14 text-center">
-
           <p className="text-xs uppercase tracking-[0.25em] text-black/40">
             A&G Publication
           </p>
@@ -546,16 +549,12 @@ export default function PackagesPage() {
           >
             Talk to A&G
           </a>
-
         </div>
-
       </section>
 
       {/* CTA */}
       <section className="px-6 py-24 lg:px-10">
-
         <div className="mx-auto max-w-7xl bg-[#d9cdb9] px-8 py-20 text-center">
-
           <p className="text-xs uppercase tracking-[0.3em] text-black/40">
             Start your journey
           </p>
@@ -572,29 +571,21 @@ export default function PackagesPage() {
           >
             Begin Publishing
           </a>
-
         </div>
-
       </section>
 
       {/* FOOTER */}
       <footer className="border-t border-black/10 bg-white">
-
         <div className="mx-auto max-w-7xl px-6 py-8 text-center text-xs text-black/40 lg:px-10">
           © 2026 A&G Publication. All rights reserved.
         </div>
-
       </footer>
 
       {/* CUSTOMER DETAILS MODAL */}
       {showDetails && selectedPackage && (
-
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-
           <div className="w-full max-w-lg rounded-2xl bg-white p-7 shadow-2xl">
-
             <div className="flex items-start justify-between">
-
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-black/40">
                   {selectedPackage.name} Package
@@ -606,12 +597,13 @@ export default function PackagesPage() {
               </div>
 
               <button
-                onClick={() => setShowDetails(false)}
+                onClick={() =>
+                  setShowDetails(false)
+                }
                 className="text-xl text-black/40 hover:text-black"
               >
                 ×
               </button>
-
             </div>
 
             <p className="mt-4 text-sm leading-6 text-black/50">
@@ -620,7 +612,6 @@ export default function PackagesPage() {
             </p>
 
             <div className="mt-7 space-y-4">
-
               {/* NAME */}
               <div>
                 <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-black/50">
@@ -680,18 +671,19 @@ export default function PackagesPage() {
                   className="w-full rounded-xl border border-black/15 px-4 py-3 text-sm outline-none focus:border-black"
                 />
               </div>
-
             </div>
 
             <div className="mt-7 flex items-center justify-between border-t border-black/10 pt-5">
-
               <div>
                 <p className="text-xs text-black/40">
                   Package Price
                 </p>
 
                 <p className="mt-1 text-xl font-semibold">
-                  ₹{selectedPackage.amount.toLocaleString("en-IN")}
+                  ₹
+                  {selectedPackage.amount.toLocaleString(
+                    "en-IN"
+                  )}
                 </p>
               </div>
 
@@ -702,15 +694,10 @@ export default function PackagesPage() {
               >
                 Continue to Payment
               </button>
-
             </div>
-
           </div>
-
         </div>
-
       )}
-
     </main>
   );
 }

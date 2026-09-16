@@ -5,11 +5,12 @@ export default function ContactPage() {
       {/* NAVBAR */}
       <nav className="border-b border-black/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
-          <a href="/" className="text-xl font-semibold tracking-[0.08em]">
-            A&G
-            <span className="ml-2 font-light tracking-[0.18em]">
-              PUBLICATION
-            </span>
+          <a href="/" className="shrink-0">
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
           </a>
 
           <div className="hidden items-center gap-8 text-sm md:flex">
@@ -467,12 +468,13 @@ export default function ContactPage() {
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-8 px-6 py-10 md:flex-row md:items-center">
 
           <div>
-            <div className="text-xl font-semibold tracking-wide">
-              A&G
-              <span className="ml-2 font-light">
-                PUBLICATION
-              </span>
-            </div>
+            <a href="/" className="inline-block shrink-0">
+              <img
+                src="/ag-logo.png"
+                alt="A&G Publication"
+                className="h-auto w-[150px] object-contain"
+              />
+            </a>
 
             <p className="mt-2 text-sm text-[#817c73]">
               Stories begin somewhere.

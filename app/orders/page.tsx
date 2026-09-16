@@ -855,21 +855,12 @@ export default function OrdersPage() {
     searchQuery,
   ]);
 
-  /*
-   * IMPORTANT:
-   * Publishing packages are completely separated
-   * from book orders.
-   */
   const publishingPackages =
     filteredOrders.filter(
       (order) =>
         isPublishingPackage(order)
     );
 
-  /*
-   * Everything that is NOT a publishing package
-   * is treated as a Book Order / Book Sale.
-   */
   const bookOrders =
     filteredOrders.filter(
       (order) =>
@@ -1231,9 +1222,13 @@ export default function OrdersPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <a
             href="/"
-            className="text-xl font-semibold tracking-[0.22em]"
+            className="shrink-0"
           >
-            A&G
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
           </a>
 
           <nav className="hidden items-center gap-8 text-sm md:flex">
@@ -1475,9 +1470,7 @@ export default function OrdersPage() {
           </div>
         ) : (
           <>
-            {/* ================================
-                BOOK ORDERS
-            ================================= */}
+            {/* BOOK ORDERS */}
             {bookOrders.length >
               0 && (
               <section className="mt-14">
@@ -1525,9 +1518,7 @@ export default function OrdersPage() {
               </section>
             )}
 
-            {/* ================================
-                PUBLISHING PACKAGES
-            ================================= */}
+            {/* PUBLISHING PACKAGES */}
             {publishingPackages.length >
               0 && (
               <section className="mt-16">

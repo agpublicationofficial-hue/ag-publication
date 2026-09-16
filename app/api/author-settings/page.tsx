@@ -291,12 +291,13 @@ export default function AuthorSettingsPage() {
           <div className="border-b border-white/10 px-7 py-6">
             <button
               onClick={() => router.push("/")}
-              className="text-xl font-semibold"
+              className="shrink-0"
             >
-              A&G{" "}
-              <span className="font-light">
-                PUBLICATION
-              </span>
+              <img
+                src="/ag-logo.png"
+                alt="A&G Publication"
+                className="h-auto w-[150px] object-contain"
+              />
             </button>
 
             <p className="mt-2 text-[10px] uppercase tracking-[0.25em] text-white/35">

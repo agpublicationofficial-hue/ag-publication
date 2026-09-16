@@ -341,11 +341,6 @@ export default function AuthorDashboard() {
 
   /*
    * REALTIME + INITIAL LOAD
-   *
-   * Realtime is treated as an optional enhancement.
-   * If Supabase Realtime is not enabled for one or more
-   * tables, the dashboard still works normally through
-   * the regular data queries and manual refresh.
    */
   useEffect(() => {
     let cancelled = false;
@@ -374,10 +369,6 @@ export default function AuthorDashboard() {
         return;
       }
 
-      /*
-       * Fallback polling keeps the dashboard updated even when
-       * Supabase Realtime is unavailable or not enabled.
-       */
       fallbackTimer = setInterval(() => {
         if (!cancelled) {
           void loadDashboardData(false);
@@ -410,20 +401,12 @@ export default function AuthorDashboard() {
 
       const user = session.user;
 
-      /*
-       * Load the dashboard first. Realtime must never block
-       * the initial dashboard data from appearing.
-       */
       await loadDashboardData(false);
 
       if (cancelled) {
         return;
       }
 
-      /*
-       * Realtime channel is optional. The dashboard falls back
-       * to 30-second polling if the channel cannot connect.
-       */
       channel = client.channel(
         `author-dashboard-live-${user.id}-${Date.now()}`
       );
@@ -517,10 +500,6 @@ export default function AuthorDashboard() {
           setLiveConnected(false);
           startFallbackRefresh();
 
-          /*
-           * Do not treat a Realtime failure as a dashboard
-           * failure. Data fetching continues normally.
-           */
           console.warn(
             "Author Dashboard realtime unavailable. Using automatic refresh fallback."
           );
@@ -1002,12 +981,13 @@ export default function AuthorDashboard() {
           <div className="border-b border-white/10 px-7 py-6">
             <Link
               href="/"
-              className="text-xl font-semibold tracking-tight"
+              className="block w-fit shrink-0"
             >
-              A&G{" "}
-              <span className="font-light">
-                PUBLICATION
-              </span>
+              <img
+                src="/ag-logo.png"
+                alt="A&G Publication"
+                className="h-auto w-[150px] object-contain"
+              />
             </Link>
 
             <p className="mt-2 text-[10px] uppercase tracking-[0.25em] text-white/35">
@@ -1085,12 +1065,13 @@ export default function AuthorDashboard() {
                     onClick={() =>
                       setMobileMenuOpen(false)
                     }
-                    className="text-lg font-semibold tracking-tight"
+                    className="block w-fit shrink-0"
                   >
-                    A&G{" "}
-                    <span className="font-light">
-                      PUBLICATION
-                    </span>
+                    <img
+                      src="/ag-logo.png"
+                      alt="A&G Publication"
+                      className="h-auto w-[150px] object-contain"
+                    />
                   </Link>
 
                   <p className="mt-2 text-[10px] uppercase tracking-[0.25em] text-white/35">

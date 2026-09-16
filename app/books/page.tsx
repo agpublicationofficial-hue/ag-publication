@@ -373,19 +373,23 @@ export default function BooksPage() {
     <main className="min-h-screen bg-[#f7f4ee] text-[#171717]">
 
       {/* HEADER */}
-      <header className="border-b border-black/10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
+      <header className="border-b border-black/10 bg-[#f7f4ee]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
 
-          <a href="/" className="group">
-            <p className="text-xl font-bold tracking-[0.18em]">
-              A&G
-            </p>
-
-            <p className="text-[10px] tracking-[0.32em] text-black/50">
-              PUBLICATION
-            </p>
+          {/* A&G LOGO */}
+          <a
+            href="/"
+            className="inline-flex shrink-0 transition-opacity hover:opacity-80"
+            aria-label="A&G Publication Home"
+          >
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-16 w-16 object-contain sm:h-[72px] sm:w-[72px]"
+            />
           </a>
 
+          {/* BACK HOME */}
           <a
             href="/"
             className="rounded-full border border-black/15 px-5 py-2.5 text-sm transition hover:bg-white"

@@ -35,12 +35,13 @@ export default function TrackOrderPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
           <a
             href="/"
-            className="text-xl font-semibold tracking-[0.08em]"
+            className="shrink-0"
           >
-            A&G
-            <span className="ml-2 font-light tracking-[0.18em]">
-              PUBLICATION
-            </span>
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
           </a>
 
           <div className="hidden gap-8 text-sm md:flex">
@@ -295,12 +296,16 @@ export default function TrackOrderPage() {
 
           <div>
 
-            <div className="text-xl font-semibold tracking-wide">
-              A&G
-              <span className="ml-2 font-light">
-                PUBLICATION
-              </span>
-            </div>
+            <a
+              href="/"
+              className="block w-fit"
+            >
+              <img
+                src="/ag-logo.png"
+                alt="A&G Publication"
+                className="h-auto w-[150px] object-contain"
+              />
+            </a>
 
             <p className="mt-2 text-sm text-[#817c73]">
               Stories begin somewhere.

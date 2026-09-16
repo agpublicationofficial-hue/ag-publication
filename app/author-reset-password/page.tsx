@@ -109,12 +109,13 @@ export default function AuthorResetPassword() {
 
           <Link
             href="/"
-            className="text-2xl font-semibold tracking-tight"
+            className="shrink-0"
           >
-            A&G{" "}
-            <span className="font-light">
-              PUBLICATION
-            </span>
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
           </Link>
 
           <Link

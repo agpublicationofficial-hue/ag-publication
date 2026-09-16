@@ -350,14 +350,14 @@ export default function AdminOrdersPage() {
     <main className="min-h-screen bg-[#f6f3ed] text-[#171717]">
       <header className="border-b border-black/10 bg-white/70">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-5 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10">
-          <div>
-            <p className="text-xl font-bold tracking-[0.18em]">
-              A&G
-            </p>
 
-            <p className="text-[10px] tracking-[0.32em] text-black/45">
-              PUBLICATION
-            </p>
+          {/* A&G LOGO */}
+          <div className="shrink-0">
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[150px] object-contain"
+            />
           </div>
 
           <div className="flex flex-wrap gap-3">
