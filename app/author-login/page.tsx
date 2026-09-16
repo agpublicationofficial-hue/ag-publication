@@ -53,7 +53,9 @@ export default function AuthorLogin() {
         return;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise((resolve) =>
+        setTimeout(resolve, 200)
+      );
 
       router.replace("/author-dashboard");
     } catch {
@@ -129,18 +131,31 @@ export default function AuthorLogin() {
         );
 
       if (error) {
-        setResetMessage(
-          "Unable to send the password reset link. Please check your email address and try again."
+        console.error(
+          "Password reset error:",
+          error
         );
+
+        setResetMessage(
+          `Password reset error: ${error.message}`
+        );
+
         return;
       }
 
       setResetMessage(
         "Password reset link has been sent to your email. Please check your inbox."
       );
-    } catch {
+    } catch (error) {
+      console.error(
+        "Password reset exception:",
+        error
+      );
+
       setResetMessage(
-        "Something went wrong while sending the reset link. Please try again."
+        error instanceof Error
+          ? `Password reset error: ${error.message}`
+          : "Something went wrong while sending the reset link. Please try again."
       );
     } finally {
       setResetLoading(false);
