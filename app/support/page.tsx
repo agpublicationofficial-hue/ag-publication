@@ -1,464 +1,565 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
-type Query = {
-  id: string;
-  author_id: string;
-  subject: string;
+type FAQ = {
+  id: number;
   category: string;
-  message: string;
-  status: string;
-  admin_reply?: string | null;
-  created_at: string;
-  updated_at: string;
-  replied_at?: string | null;
+  question: string;
+  answer: string;
 };
 
 const categories = [
-  "General",
-  "Publishing",
-  "Order",
-  "Payment",
-  "Manuscript",
-  "Royalty",
-  "Certificate",
-  "Technical",
+  {
+    title: "Publishing",
+    description: "Manuscript, ISBN, formatting & publishing",
+    icon: "✦",
+  },
+  {
+    title: "Payments",
+    description: "Payments, invoices & refunds",
+    icon: "₹",
+  },
+  {
+    title: "Orders",
+    description: "Order status, delivery & tracking",
+    icon: "□",
+  },
+  {
+    title: "Royalties",
+    description: "Sales, royalties & statements",
+    icon: "◆",
+  },
+  {
+    title: "Account",
+    description: "Login, password & profile",
+    icon: "♙",
+  },
+  {
+    title: "Technical",
+    description: "Website, dashboard & other issues",
+    icon: "⌘",
+  },
 ];
 
-const statusClass: Record<string, string> = {
-  Open: "bg-amber-50 text-amber-700",
-  "In Progress": "bg-blue-50 text-blue-700",
-  Resolved: "bg-green-50 text-green-700",
-  Closed: "bg-black/5 text-black/50",
-};
-
-function formatDate(value?: string | null) {
-  if (!value) return "N/A";
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
+const faqs: FAQ[] = [
+  {
+    id: 1,
+    category: "Publishing",
+    question: "How do I submit my manuscript?",
+    answer:
+      "Log in to your A&G author account and open the Submit Manuscript section. Enter your book details, upload the required files and submit the manuscript for review.",
+  },
+  {
+    id: 2,
+    category: "Publishing",
+    question: "How can I check my publishing progress?",
+    answer:
+      "Open your Author Dashboard and go to your publishing progress. You can view the current stage of your manuscript and related updates there.",
+  },
+  {
+    id: 3,
+    category: "Publishing",
+    question: "Can I update my manuscript after submission?",
+    answer:
+      "Changes may depend on the current publishing stage. Contact the A&G team before replacing or modifying files that are already under review or production.",
+  },
+  {
+    id: 4,
+    category: "Payments",
+    question: "How can I verify my payment?",
+    answer:
+      "After a successful payment, your order and payment information are recorded in your account. You can also check your Orders section for the latest status.",
+  },
+  {
+    id: 5,
+    category: "Payments",
+    question: "What should I do if my payment failed?",
+    answer:
+      "First check whether the amount was actually deducted. If it was deducted but your order was not created or updated, contact support and share the payment reference or order details.",
+  },
+  {
+    id: 6,
+    category: "Orders",
+    question: "Where can I track my order?",
+    answer:
+      "Open the Track Order section from your author account to view the latest available order and publishing status.",
+  },
+  {
+    id: 7,
+    category: "Orders",
+    question: "What if my order is delayed?",
+    answer:
+      "Open your order details and contact support with your order number. The A&G team can check the current status and provide the latest update.",
+  },
+  {
+    id: 8,
+    category: "Royalties",
+    question: "Where can I see my royalty information?",
+    answer:
+      "Your royalty records can be viewed from the Royalties section of the Author Dashboard. Sales and royalty updates depend on verified sales data.",
+  },
+  {
+    id: 9,
+    category: "Royalties",
+    question: "When are sales and royalties updated?",
+    answer:
+      "Sales information is updated when verified platform data becomes available. Marketplace reporting schedules can vary by platform.",
+  },
+  {
+    id: 10,
+    category: "Account",
+    question: "I forgot my password. What should I do?",
+    answer:
+      "Use the Forgot Password option on the Author Login page and follow the password-reset link sent to your registered email address.",
+  },
+  {
+    id: 11,
+    category: "Account",
+    question: "Can I sign in using Google?",
+    answer:
+      "Yes. A&G Author Login supports Google sign-in when your Google account is connected to the author account.",
+  },
+  {
+    id: 12,
+    category: "Technical",
+    question: "My dashboard is not loading. What should I do?",
+    answer:
+      "Refresh the page and try signing in again. If the issue continues, contact support with the page name and a short description of what you see.",
+  },
+];
 
 export default function SupportPage() {
   const router = useRouter();
-  const supabase = createClient();
 
-  const [queries, setQueries] = useState<Query[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
-  const [subject, setSubject] = useState("");
-  const [category, setCategory] = useState("General");
-  const [message, setMessage] = useState("");
+  const filteredFAQs = useMemo(() => {
+    const query = search.trim().toLowerCase();
 
-  const [selectedQuery, setSelectedQuery] = useState<Query | null>(
-    null
-  );
+    return faqs.filter((faq) => {
+      const matchesCategory =
+        activeCategory === "All" ||
+        faq.category === activeCategory;
 
-  const fetchQueries = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      const matchesSearch =
+        !query ||
+        faq.question.toLowerCase().includes(query) ||
+        faq.answer.toLowerCase().includes(query) ||
+        faq.category.toLowerCase().includes(query);
 
-    if (!user) {
-      router.replace("/author-login");
-      return;
-    }
+      return matchesCategory && matchesSearch;
+    });
+  }, [search, activeCategory]);
 
-    const { data, error } = await supabase
-      .from("support_queries")
-      .select("*")
-      .eq("author_id", user.id)
-      .order("created_at", { ascending: false });
+  const categoryNames = [
+    "All",
+    ...categories.map((category) => category.title),
+  ];
 
-    if (error) {
-      console.error("Support queries error:", error);
-      setQueries([]);
-    } else {
-      setQueries((data || []) as Query[]);
-    }
-
-    setLoading(false);
+  const scrollToFAQs = () => {
+    document
+      .getElementById("faqs")
+      ?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
   };
 
-  useEffect(() => {
-    fetchQueries();
+  const selectCategory = (category: string) => {
+    setActiveCategory(category);
+    setOpenFAQ(null);
 
-    const channel = supabase
-      .channel("author-support-queries")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "support_queries",
-        },
-        () => {
-          fetchQueries();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const submitQuery = async () => {
-    if (!subject.trim()) {
-      alert("Please enter a subject.");
-      return;
-    }
-
-    if (!message.trim()) {
-      alert("Please enter your query.");
-      return;
-    }
-
-    if (message.trim().length < 10) {
-      alert("Please provide a little more detail.");
-      return;
-    }
-
-    setSubmitting(true);
-
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.replace("/author-login");
-        return;
-      }
-
-      const { error } = await supabase
-        .from("support_queries")
-        .insert({
-          author_id: user.id,
-          subject: subject.trim(),
-          category,
-          message: message.trim(),
-          status: "Open",
+    setTimeout(() => {
+      document
+        .getElementById("faqs")
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
         });
-
-      if (error) {
-        console.error("Create support query error:", error);
-        alert(error.message);
-        return;
-      }
-
-      setSubject("");
-      setCategory("General");
-      setMessage("");
-
-      alert("Your query has been submitted successfully.");
-
-      await fetchQueries();
-    } catch (error) {
-      console.error("Support submit error:", error);
-      alert("Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
+    }, 50);
   };
 
   return (
     <main className="min-h-screen bg-[#f6f3ed] text-[#171717]">
-      {/* HEADER */}
-      <header className="border-b border-black/10 bg-white/70">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
-          <div>
+      {/* TOP NAV */}
+      <header className="border-b border-black/10 bg-[#f6f3ed]/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
+          <Link href="/" className="shrink-0">
+            <img
+              src="/ag-logo.png"
+              alt="A&G Publication"
+              className="h-auto w-[145px] object-contain"
+            />
+          </Link>
+
+          <div className="flex items-center gap-4">
             <Link
               href="/author-dashboard"
-              className="text-xs text-black/40 transition hover:text-black"
+              className="hidden text-sm text-black/55 transition hover:text-black sm:block"
             >
-              ← Author Dashboard
+              Author Dashboard
             </Link>
 
-            <h1 className="mt-2 text-2xl font-medium tracking-tight sm:text-3xl">
-              Support & Queries
-            </h1>
-          </div>
-
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1c1c1a] text-sm font-medium text-white">
-            A
+            <Link
+              href="/"
+              className="rounded-full border border-black/15 px-4 py-2 text-sm font-medium transition hover:border-black hover:bg-white"
+            >
+              ← Website
+            </Link>
           </div>
         </div>
       </header>
 
-      <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10 lg:py-12">
-        {/* INTRO */}
-        <div className="mb-8">
-          <p className="text-xs uppercase tracking-[0.2em] text-black/35">
-            A&G Author Support
+      {/* HERO */}
+      <section className="border-b border-black/10 bg-white">
+        <div className="mx-auto max-w-5xl px-6 py-16 text-center sm:py-20 lg:px-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-black/35">
+            A&G PUBLICATION
           </p>
 
-          <h2 className="mt-2 text-3xl font-medium tracking-tight">
-            How can we help?
-          </h2>
+          <h1 className="mt-4 font-serif text-5xl leading-tight tracking-tight sm:text-6xl">
+            Help Center
+          </h1>
 
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-black/50">
-            Raise a support query and the A&G Publication team can respond
-            directly through your author portal.
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-black/50 sm:text-lg">
+            Find answers about publishing, payments, orders, royalties,
+            your account and everything in between.
           </p>
-        </div>
 
-        {/* NEW QUERY */}
-        <div className="rounded-2xl border border-black/10 bg-white p-6 sm:p-8">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-black/35">
-              New Query
-            </p>
-
-            <h3 className="mt-2 text-xl font-medium">
-              Contact A&G Support
-            </h3>
-          </div>
-
-          <div className="mt-7 grid gap-5 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-medium">
-                Subject
-              </label>
+          {/* SEARCH */}
+          <div className="mx-auto mt-9 max-w-2xl">
+            <div className="flex items-center rounded-2xl border border-black/10 bg-[#faf9f6] px-5 py-4 shadow-[0_15px_45px_rgba(0,0,0,0.05)] focus-within:border-black/25">
+              <span className="mr-3 text-lg text-black/35">
+                ⌕
+              </span>
 
               <input
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="What do you need help with?"
-                className="w-full rounded-xl border border-black/15 bg-[#faf9f6] px-4 py-3.5 text-sm outline-none placeholder:text-black/30 focus:border-black focus:bg-white"
+                type="text"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setOpenFAQ(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    scrollToFAQs();
+                  }
+                }}
+                placeholder="Search your issue..."
+                className="w-full bg-transparent text-sm outline-none placeholder:text-black/30 sm:text-base"
               />
-            </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium">
-                Category
-              </label>
-
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full rounded-xl border border-black/15 bg-[#faf9f6] px-4 py-3.5 text-sm outline-none focus:border-black focus:bg-white"
-              >
-                {categories.map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="mt-5">
-            <label className="mb-2 block text-sm font-medium">
-              Your Query
-            </label>
-
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={6}
-              placeholder="Describe your issue in detail..."
-              className="w-full resize-none rounded-xl border border-black/15 bg-[#faf9f6] px-4 py-3.5 text-sm outline-none placeholder:text-black/30 focus:border-black focus:bg-white"
-            />
-          </div>
-
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-black/35">
-              You will see the admin response here once your query is reviewed.
-            </p>
-
-            <button
-              type="button"
-              onClick={submitQuery}
-              disabled={submitting}
-              className="rounded-xl bg-[#171717] px-6 py-3.5 text-sm font-medium text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {submitting
-                ? "Submitting..."
-                : "Submit Query →"}
-            </button>
-          </div>
-        </div>
-
-        {/* MY QUERIES */}
-        <div className="mt-8 rounded-2xl border border-black/10 bg-white">
-          <div className="border-b border-black/10 px-6 py-5 sm:px-7">
-            <p className="text-xs uppercase tracking-[0.2em] text-black/35">
-              Support History
-            </p>
-
-            <h3 className="mt-2 text-xl font-medium">
-              My Queries
-            </h3>
-          </div>
-
-          {loading ? (
-            <div className="p-8 text-sm text-black/50">
-              Loading your queries...
-            </div>
-          ) : queries.length === 0 ? (
-            <div className="p-8 text-center">
-              <p className="text-sm font-medium">
-                No support queries yet.
-              </p>
-
-              <p className="mt-2 text-xs text-black/40">
-                Your submitted queries and admin replies will appear here.
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-black/10">
-              {queries.map((query) => (
-                <div
-                  key={query.id}
-                  className="p-6 transition hover:bg-[#faf9f6] sm:p-7"
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setOpenFAQ(null);
+                  }}
+                  className="ml-3 text-xs font-medium text-black/40 transition hover:text-black"
                 >
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="text-sm font-medium">
-                          {query.subject}
-                        </h4>
-
-                        <span
-                          className={`rounded-full px-3 py-1 text-[10px] font-medium ${
-                            statusClass[query.status] ||
-                            "bg-black/5 text-black/50"
-                          }`}
-                        >
-                          {query.status}
-                        </span>
-
-                        <span className="rounded-full bg-[#f2eee6] px-3 py-1 text-[10px] text-black/45">
-                          {query.category}
-                        </span>
-                      </div>
-
-                      <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-black/55">
-                        {query.message}
-                      </p>
-
-                      <p className="mt-3 text-[11px] text-black/35">
-                        Submitted: {formatDate(query.created_at)}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => setSelectedQuery(query)}
-                      className="shrink-0 rounded-xl border border-black/15 px-4 py-2.5 text-xs font-medium transition hover:border-black hover:bg-white"
-                    >
-                      View Details
-                    </button>
-                  </div>
-
-                  {query.admin_reply && (
-                    <div className="mt-5 rounded-xl border border-black/10 bg-[#f8f6f1] p-5">
-                      <p className="text-[10px] uppercase tracking-wider text-black/40">
-                        A&G Admin Reply
-                      </p>
-
-                      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-black/65">
-                        {query.admin_reply}
-                      </p>
-
-                      {query.replied_at && (
-                        <p className="mt-3 text-[11px] text-black/35">
-                          Replied: {formatDate(query.replied_at)}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+                  Clear
+                </button>
+              )}
             </div>
-          )}
+
+            <p className="mt-3 text-xs text-black/30">
+              Try &quot;payment&quot;, &quot;royalty&quot;,
+              &quot;order&quot; or &quot;manuscript&quot;
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* DETAILS MODAL */}
-      {selectedQuery && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-5">
-          <div className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl sm:p-8">
-            <div className="flex items-start justify-between gap-5">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-black/35">
-                  Support Query
-                </p>
+      {/* CATEGORY CARDS */}
+      <section className="mx-auto max-w-7xl px-6 py-14 lg:px-10">
+        <div className="flex items-end justify-between gap-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.25em] text-black/35">
+              Browse by topic
+            </p>
 
-                <h3 className="mt-2 text-xl font-medium">
-                  {selectedQuery.subject}
-                </h3>
-              </div>
+            <h2 className="mt-2 text-2xl font-medium tracking-tight sm:text-3xl">
+              What can we help with?
+            </h2>
+          </div>
 
-              <button
-                onClick={() => setSelectedQuery(null)}
-                className="rounded-full border border-black/10 px-3 py-1.5 text-sm text-black/50 hover:text-black"
+          <button
+            type="button"
+            onClick={() => selectCategory("All")}
+            className="hidden text-sm font-medium text-black/45 transition hover:text-black sm:block"
+          >
+            View all
+          </button>
+        </div>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {categories.map((category) => (
+            <button
+              key={category.title}
+              type="button"
+              onClick={() => selectCategory(category.title)}
+              className={`group rounded-2xl border p-6 text-left transition duration-200 ${
+                activeCategory === category.title
+                  ? "border-black bg-[#171717] text-white shadow-[0_15px_45px_rgba(0,0,0,0.12)]"
+                  : "border-black/10 bg-white hover:-translate-y-0.5 hover:border-black/25 hover:shadow-[0_15px_40px_rgba(0,0,0,0.06)]"
+              }`}
+            >
+              <div
+                className={`flex h-11 w-11 items-center justify-center rounded-xl text-lg ${
+                  activeCategory === category.title
+                    ? "bg-white/10 text-white"
+                    : "bg-[#f1eee7] text-black"
+                }`}
               >
-                ×
-              </button>
-            </div>
-
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl bg-[#f8f6f1] p-4">
-                <p className="text-[10px] uppercase tracking-wider text-black/40">
-                  Category
-                </p>
-
-                <p className="mt-1 text-sm font-medium">
-                  {selectedQuery.category}
-                </p>
+                {category.icon}
               </div>
 
-              <div className="rounded-xl bg-[#f8f6f1] p-4">
-                <p className="text-[10px] uppercase tracking-wider text-black/40">
-                  Status
-                </p>
+              <h3 className="mt-5 text-lg font-medium">
+                {category.title}
+              </h3>
 
-                <p className="mt-1 text-sm font-medium">
-                  {selectedQuery.status}
-                </p>
+              <p
+                className={`mt-2 text-sm leading-6 ${
+                  activeCategory === category.title
+                    ? "text-white/55"
+                    : "text-black/45"
+                }`}
+              >
+                {category.description}
+              </p>
+
+              <div
+                className={`mt-5 text-sm font-medium ${
+                  activeCategory === category.title
+                    ? "text-white/70"
+                    : "text-black/45"
+                }`}
+              >
+                Explore →
               </div>
-            </div>
+            </button>
+          ))}
+        </div>
+      </section>
 
-            <div className="mt-5 rounded-xl border border-black/10 p-5">
-              <p className="text-[10px] uppercase tracking-wider text-black/40">
-                Your Message
+      {/* FAQ */}
+      <section
+        id="faqs"
+        className="scroll-mt-8 border-y border-black/10 bg-[#faf9f6]"
+      >
+        <div className="mx-auto max-w-5xl px-6 py-16 lg:px-10">
+          <div className="flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em] text-black/35">
+                Frequently asked questions
               </p>
 
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-black/65">
-                {selectedQuery.message}
-              </p>
+              <h2 className="mt-2 text-3xl font-medium tracking-tight">
+                {activeCategory === "All"
+                  ? "Popular questions"
+                  : `${activeCategory} questions`}
+              </h2>
             </div>
 
-            {selectedQuery.admin_reply && (
-              <div className="mt-5 rounded-xl border border-black/10 bg-[#f8f6f1] p-5">
-                <p className="text-[10px] uppercase tracking-wider text-black/40">
-                  Admin Reply
+            <div className="flex flex-wrap gap-2">
+              {categoryNames.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => {
+                    setActiveCategory(category);
+                    setOpenFAQ(null);
+                  }}
+                  className={`rounded-full px-4 py-2 text-xs font-medium transition ${
+                    activeCategory === category
+                      ? "bg-[#171717] text-white"
+                      : "border border-black/10 bg-white text-black/50 hover:border-black/25 hover:text-black"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8 overflow-hidden rounded-2xl border border-black/10 bg-white">
+            {filteredFAQs.length === 0 ? (
+              <div className="px-6 py-16 text-center sm:px-10">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#f1eee7] text-xl">
+                  ?
+                </div>
+
+                <h3 className="mt-5 text-lg font-medium">
+                  No matching help articles
+                </h3>
+
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-black/45">
+                  We couldn&apos;t find an answer for that search.
+                  Try another phrase or contact the A&G support team.
                 </p>
 
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-black/65">
-                  {selectedQuery.admin_reply}
-                </p>
+                <button
+                  type="button"
+                  onClick={() => router.push("/contact")}
+                  className="mt-6 rounded-full bg-[#171717] px-5 py-3 text-sm font-medium text-white transition hover:bg-black"
+                >
+                  Contact Support
+                </button>
+              </div>
+            ) : (
+              <div className="divide-y divide-black/10">
+                {filteredFAQs.map((faq) => {
+                  const isOpen = openFAQ === faq.id;
+
+                  return (
+                    <div key={faq.id}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenFAQ(isOpen ? null : faq.id)
+                        }
+                        className="flex w-full items-center justify-between gap-6 px-6 py-5 text-left transition hover:bg-[#faf9f6] sm:px-7"
+                      >
+                        <div className="min-w-0">
+                          <div className="mb-2">
+                            <span className="rounded-full bg-[#f1eee7] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-black/45">
+                              {faq.category}
+                            </span>
+                          </div>
+
+                          <h3 className="text-sm font-medium leading-6 sm:text-base">
+                            {faq.question}
+                          </h3>
+                        </div>
+
+                        <span
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/10 text-lg transition ${
+                            isOpen
+                              ? "rotate-45 bg-[#171717] text-white"
+                              : "bg-white text-black/50"
+                          }`}
+                        >
+                          +
+                        </span>
+                      </button>
+
+                      {isOpen && (
+                        <div className="px-6 pb-6 sm:px-7">
+                          <div className="rounded-xl bg-[#faf9f6] px-5 py-4">
+                            <p className="text-sm leading-7 text-black/55">
+                              {faq.answer}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
+          </div>
 
-            <button
-              onClick={() => setSelectedQuery(null)}
-              className="mt-6 w-full rounded-xl bg-[#171717] px-5 py-3 text-sm font-medium text-white hover:bg-black"
-            >
-              Close
-            </button>
+          <p className="mt-4 text-center text-xs text-black/30">
+            Showing {filteredFAQs.length}{" "}
+            {filteredFAQs.length === 1 ? "article" : "articles"}
+          </p>
+        </div>
+      </section>
+
+      {/* NEED MORE HELP */}
+      <section className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
+        <div className="overflow-hidden rounded-[2rem] bg-[#171717] text-white">
+          <div className="grid gap-10 px-7 py-10 md:grid-cols-[1.4fr_1fr] md:px-12 md:py-12 lg:px-16">
+            <div>
+              <p className="text-xs uppercase tracking-[0.28em] text-white/35">
+                Need more help?
+              </p>
+
+              <h2 className="mt-3 max-w-xl font-serif text-4xl leading-tight sm:text-5xl">
+                Still can&apos;t find what you&apos;re looking for?
+              </h2>
+
+              <p className="mt-5 max-w-xl text-sm leading-7 text-white/50">
+                Our support team can help with publishing,
+                manuscripts, orders, payments, royalties and account
+                issues.
+              </p>
+            </div>
+
+            <div className="grid gap-3 self-center">
+              <button
+                type="button"
+                onClick={() => router.push("/contact")}
+                className="flex items-center justify-between rounded-2xl bg-white px-5 py-4 text-left text-sm font-medium text-[#171717] transition hover:bg-[#f1eee7]"
+              >
+                <span>Contact Support</span>
+                <span>→</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push("/track-order")}
+                className="flex items-center justify-between rounded-2xl border border-white/15 px-5 py-4 text-left text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/5"
+              >
+                <span>Track an Order</span>
+                <span>→</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push("/author-dashboard")}
+                className="flex items-center justify-between rounded-2xl border border-white/15 px-5 py-4 text-left text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/5"
+              >
+                <span>Open Author Dashboard</span>
+                <span>→</span>
+              </button>
+            </div>
           </div>
         </div>
-      )}
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-black/10 bg-white">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-xs text-black/35 sm:flex-row sm:items-center sm:justify-between lg:px-10">
+          <p>© 2026 A&G Publication. All rights reserved.</p>
+
+          <div className="flex flex-wrap gap-5">
+            <Link
+              href="/books"
+              className="transition hover:text-black"
+            >
+              Books
+            </Link>
+
+            <Link
+              href="/publishing"
+              className="transition hover:text-black"
+            >
+              Publishing
+            </Link>
+
+            <Link
+              href="/contact"
+              className="transition hover:text-black"
+            >
+              Contact
+            </Link>
+
+            <Link
+              href="/author-dashboard"
+              className="transition hover:text-black"
+            >
+              Author Portal
+            </Link>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }
