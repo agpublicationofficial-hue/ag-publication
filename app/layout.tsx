@@ -4,6 +4,8 @@ import SupportWidget from "@/components/support-widget";
 import CookieSettings from "@/components/cookie-settings";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://ag-publication.vercel.app"),
+
   title: "A&G PUBLICATION",
   description:
     "A&G Publication — Publishing stories, ideas and voices that deserve to be heard.",
@@ -19,6 +21,7 @@ export const metadata: Metadata = {
     description:
       "A&G Publication — Publishing stories, ideas and voices that deserve to be heard.",
     siteName: "A&G PUBLICATION",
+    url: "https://ag-publication.vercel.app/",
     type: "website",
     images: [
       {
@@ -28,6 +31,14 @@ export const metadata: Metadata = {
         alt: "A&G PUBLICATION",
       },
     ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "A&G PUBLICATION",
+    description:
+      "A&G Publication — Publishing stories, ideas and voices that deserve to be heard.",
+    images: ["/ag-logo.png"],
   },
 };
 
