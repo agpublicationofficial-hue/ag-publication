@@ -1,14 +1,28 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 
 type FAQ = {
   id: number;
   category: string;
   question: string;
   answer: string;
+};
+
+type SupportTicket = {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  category: string;
+  subject: string;
+  message: string;
+  status: "Open" | "In Progress" | "Resolved";
+  admin_reply?: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 const categories = [
@@ -131,12 +145,45 @@ const faqs: FAQ[] = [
   },
 ];
 
+const ticketCategories = [
+  "General",
+  "Publishing",
+  "Payments",
+  "Orders",
+  "Royalties",
+  "Account",
+  "Technical",
+];
+
 export default function SupportPage() {
   const router = useRouter();
+  const supabase = createClient();
 
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+
+  const [showTicketForm, setShowTicketForm] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [submittingTicket, setSubmittingTicket] = useState(false);
+  const [loadingTickets, setLoadingTickets] = useState(false);
+
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+
+  const [ticketForm, setTicketForm] = useState({
+    category: "General",
+    subject: "",
+    message: "",
+  });
+
+  const [ticketSuccess, setTicketSuccess] = useState<string | null>(
+    null
+  );
+  const [ticketError, setTicketError] = useState("");
 
   const filteredFAQs = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -161,6 +208,118 @@ export default function SupportPage() {
     ...categories.map((category) => category.title),
   ];
 
+  /* -------------------------------------------------------
+     LOAD CURRENT USER + AUTHOR DETAILS
+  ------------------------------------------------------- */
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadUser = async () => {
+      setLoadingUser(true);
+
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) {
+          console.error("Support user error:", userError);
+        }
+
+        if (!mounted) return;
+
+        if (!user) {
+          setUserId(null);
+          setUserName("");
+          setUserEmail("");
+          setLoadingUser(false);
+          return;
+        }
+
+        setUserId(user.id);
+        setUserEmail(user.email || "");
+
+        const { data: author } = await supabase
+          .from("authors")
+          .select("full_name, email")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (!mounted) return;
+
+        setUserName(author?.full_name || "");
+        setUserEmail(author?.email || user.email || "");
+      } catch (error) {
+        console.error("Support user loading error:", error);
+      } finally {
+        if (mounted) {
+          setLoadingUser(false);
+        }
+      }
+    };
+
+    loadUser();
+
+    return () => {
+      mounted = false;
+    };
+  }, [supabase]);
+
+  /* -------------------------------------------------------
+     LOAD USER TICKETS
+  ------------------------------------------------------- */
+
+  const loadTickets = async (currentUserId: string) => {
+    setLoadingTickets(true);
+
+    try {
+      const { data, error } = await supabase
+        .from("support_tickets")
+        .select(
+          "id, name, email, category, subject, message, status, admin_reply, created_at, updated_at"
+        )
+        .eq("user_id", currentUserId)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Support tickets load error:", error);
+        setTickets([]);
+        return;
+      }
+
+      setTickets((data || []) as SupportTicket[]);
+    } finally {
+      setLoadingTickets(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!userId) {
+      setTickets([]);
+      return;
+    }
+
+    loadTickets(userId);
+  }, [userId]);
+
+  /* -------------------------------------------------------
+     OPEN TICKET FORM FROM ?ticket=new
+  ------------------------------------------------------- */
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("ticket") === "new") {
+      setShowTicketForm(true);
+    }
+  }, []);
+
+  /* -------------------------------------------------------
+     FAQ HELPERS
+  ------------------------------------------------------- */
+
   const scrollToFAQs = () => {
     document
       .getElementById("faqs")
@@ -182,6 +341,156 @@ export default function SupportPage() {
           block: "start",
         });
     }, 50);
+  };
+
+  /* -------------------------------------------------------
+     OPEN CONTACT SUPPORT
+  ------------------------------------------------------- */
+
+  const openSupportForm = () => {
+    setTicketError("");
+    setTicketSuccess(null);
+    setShowTicketForm(true);
+  };
+
+  const closeSupportForm = () => {
+    if (submittingTicket) return;
+
+    setShowTicketForm(false);
+    setTicketError("");
+    setTicketSuccess(null);
+
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, "", cleanUrl);
+  };
+
+  /* -------------------------------------------------------
+     SUBMIT TICKET
+  ------------------------------------------------------- */
+
+  const submitTicket = async () => {
+    setTicketError("");
+    setTicketSuccess(null);
+
+    if (!userId) {
+      setTicketError(
+        "Please log in to your A&G author account before contacting support."
+      );
+      return;
+    }
+
+    const subject = ticketForm.subject.trim();
+    const message = ticketForm.message.trim();
+
+    if (!subject) {
+      setTicketError("Please enter a subject.");
+      return;
+    }
+
+    if (subject.length < 4) {
+      setTicketError(
+        "Subject should contain at least 4 characters."
+      );
+      return;
+    }
+
+    if (!message) {
+      setTicketError("Please describe your issue.");
+      return;
+    }
+
+    if (message.length < 10) {
+      setTicketError(
+        "Please provide a little more detail about the issue."
+      );
+      return;
+    }
+
+    setSubmittingTicket(true);
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setTicketError(
+          "Your login session has expired. Please log in again."
+        );
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("support_tickets")
+        .insert({
+          user_id: user.id,
+          name: userName || null,
+          email: userEmail || user.email || null,
+          category: ticketForm.category,
+          subject,
+          message,
+          status: "Open",
+        })
+        .select(
+          "id, name, email, category, subject, message, status, admin_reply, created_at, updated_at"
+        )
+        .single();
+
+      if (error) {
+        console.error("Support ticket insert error:", error);
+
+        setTicketError(
+          error.message ||
+            "Unable to create your support ticket. Please try again."
+        );
+
+        return;
+      }
+
+      if (data) {
+        setTickets((current) => [
+          data as SupportTicket,
+          ...current,
+        ]);
+      }
+
+      setTicketForm({
+        category: "General",
+        subject: "",
+        message: "",
+      });
+
+      setTicketSuccess(
+        `Ticket created successfully. Ticket ID: ${data.id}`
+      );
+    } catch (error) {
+      console.error("Support ticket error:", error);
+
+      setTicketError(
+        "Something went wrong while creating your ticket."
+      );
+    } finally {
+      setSubmittingTicket(false);
+    }
+  };
+
+  const formatTicketDate = (value: string) => {
+    try {
+      return new Intl.DateTimeFormat("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(new Date(value));
+    } catch {
+      return value;
+    }
+  };
+
+  const statusStyles: Record<string, string> = {
+    Open: "bg-amber-50 text-amber-700 border-amber-200",
+    "In Progress":
+      "bg-blue-50 text-blue-700 border-blue-200",
+    Resolved:
+      "bg-emerald-50 text-emerald-700 border-emerald-200",
   };
 
   return (
@@ -406,7 +715,7 @@ export default function SupportPage() {
 
                 <button
                   type="button"
-                  onClick={() => router.push("/contact")}
+                  onClick={openSupportForm}
                   className="mt-6 rounded-full bg-[#171717] px-5 py-3 text-sm font-medium text-white transition hover:bg-black"
                 >
                   Contact Support
@@ -472,6 +781,117 @@ export default function SupportPage() {
         </div>
       </section>
 
+      {/* MY SUPPORT TICKETS */}
+      {userId && (
+        <section className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em] text-black/35">
+                Support activity
+              </p>
+
+              <h2 className="mt-2 text-3xl font-medium tracking-tight">
+                My Support Tickets
+              </h2>
+
+              <p className="mt-2 text-sm text-black/45">
+                View your previous support requests and their latest status.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={openSupportForm}
+              className="rounded-full bg-[#171717] px-5 py-3 text-sm font-medium text-white transition hover:bg-black"
+            >
+              + New Ticket
+            </button>
+          </div>
+
+          {loadingTickets ? (
+            <div className="mt-8 rounded-2xl border border-black/10 bg-white px-6 py-10 text-center text-sm text-black/45">
+              Loading your support tickets...
+            </div>
+          ) : tickets.length === 0 ? (
+            <div className="mt-8 rounded-2xl border border-black/10 bg-white px-6 py-10 text-center">
+              <h3 className="text-lg font-medium">
+                No support tickets yet
+              </h3>
+
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-black/45">
+                Need help? Create a ticket and the A&G team can respond
+                from the support dashboard.
+              </p>
+
+              <button
+                type="button"
+                onClick={openSupportForm}
+                className="mt-5 rounded-full bg-[#171717] px-5 py-3 text-sm font-medium text-white"
+              >
+                Contact Support
+              </button>
+            </div>
+          ) : (
+            <div className="mt-8 space-y-4">
+              {tickets.map((ticket) => (
+                <div
+                  key={ticket.id}
+                  className="rounded-2xl border border-black/10 bg-white p-5 sm:p-6"
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-black/30">
+                        Ticket
+                      </p>
+
+                      <p className="mt-1 break-all font-mono text-xs text-black/45">
+                        {ticket.id}
+                      </p>
+
+                      <h3 className="mt-4 text-lg font-medium">
+                        {ticket.subject}
+                      </h3>
+
+                      <p className="mt-2 text-xs text-black/40">
+                        {ticket.category} ·{" "}
+                        {formatTicketDate(ticket.created_at)}
+                      </p>
+                    </div>
+
+                    <span
+                      className={`w-fit rounded-full border px-3 py-1.5 text-xs font-medium ${
+                        statusStyles[ticket.status] ||
+                        "border-black/10 bg-black/5 text-black/60"
+                      }`}
+                    >
+                      {ticket.status}
+                    </span>
+                  </div>
+
+                  <div className="mt-5 rounded-xl bg-[#faf9f6] px-4 py-4">
+                    <p className="text-sm leading-6 text-black/55">
+                      {ticket.message}
+                    </p>
+                  </div>
+
+                  {ticket.admin_reply && (
+                    <div className="mt-4 rounded-xl border border-black/10 bg-white px-4 py-4">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/35">
+                        A&G Support Reply
+                      </p>
+
+                      <p className="mt-2 text-sm leading-6 text-black/60">
+                        {ticket.admin_reply}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
       {/* NEED MORE HELP */}
       <section className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
         <div className="overflow-hidden rounded-[2rem] bg-[#171717] text-white">
@@ -486,16 +906,15 @@ export default function SupportPage() {
               </h2>
 
               <p className="mt-5 max-w-xl text-sm leading-7 text-white/50">
-                Our support team can help with publishing,
-                manuscripts, orders, payments, royalties and account
-                issues.
+                Our support team can help with publishing, manuscripts,
+                orders, payments, royalties and account issues.
               </p>
             </div>
 
             <div className="grid gap-3 self-center">
               <button
                 type="button"
-                onClick={() => router.push("/contact")}
+                onClick={openSupportForm}
                 className="flex items-center justify-between rounded-2xl bg-white px-5 py-4 text-left text-sm font-medium text-[#171717] transition hover:bg-[#f1eee7]"
               >
                 <span>Contact Support</span>
@@ -560,6 +979,218 @@ export default function SupportPage() {
           </div>
         </div>
       </footer>
+
+      {/* SUPPORT TICKET MODAL */}
+      {showTicketForm && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/55 p-4 backdrop-blur-[2px]">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-[0_30px_100px_rgba(0,0,0,0.25)]">
+            <div className="border-b border-black/10 px-6 py-6 sm:px-8">
+              <div className="flex items-start justify-between gap-5">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-black/35">
+                    A&G PUBLICATION
+                  </p>
+
+                  <h2 className="mt-2 text-2xl font-semibold">
+                    Contact Support
+                  </h2>
+
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-black/50">
+                    Tell us what you need help with and our team can
+                    review your support request.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={closeSupportForm}
+                  disabled={submittingTicket}
+                  aria-label="Close support form"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/10 text-lg text-black/50 transition hover:bg-black/5 hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {!userId && !loadingUser ? (
+              <div className="px-6 py-10 text-center sm:px-8">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#f1eee7] text-xl">
+                  ♙
+                </div>
+
+                <h3 className="mt-5 text-xl font-medium">
+                  Login required
+                </h3>
+
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-black/45">
+                  Please log in to your A&G author account before opening
+                  a support ticket.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => router.push("/author-login")}
+                  className="mt-6 rounded-full bg-[#171717] px-6 py-3 text-sm font-medium text-white transition hover:bg-black"
+                >
+                  Go to Author Login
+                </button>
+              </div>
+            ) : (
+              <div className="px-6 py-6 sm:px-8 sm:py-8">
+                <div className="grid gap-5">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-[0.15em] text-black/40">
+                        Name
+                      </label>
+
+                      <input
+                        value={loadingUser ? "Loading..." : userName}
+                        readOnly
+                        className="mt-2 w-full rounded-xl border border-black/10 bg-black/[0.03] px-4 py-3 text-sm text-black/55 outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-[0.15em] text-black/40">
+                        Email
+                      </label>
+
+                      <input
+                        value={
+                          loadingUser ? "Loading..." : userEmail
+                        }
+                        readOnly
+                        className="mt-2 w-full rounded-xl border border-black/10 bg-black/[0.03] px-4 py-3 text-sm text-black/55 outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-[0.15em] text-black/40">
+                      Category
+                    </label>
+
+                    <select
+                      value={ticketForm.category}
+                      onChange={(e) =>
+                        setTicketForm((current) => ({
+                          ...current,
+                          category: e.target.value,
+                        }))
+                      }
+                      className="mt-2 w-full rounded-xl border border-black/15 bg-[#faf9f6] px-4 py-3 text-sm outline-none focus:border-black/30"
+                    >
+                      {ticketCategories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-[0.15em] text-black/40">
+                      Subject
+                    </label>
+
+                    <input
+                      value={ticketForm.subject}
+                      onChange={(e) =>
+                        setTicketForm((current) => ({
+                          ...current,
+                          subject: e.target.value,
+                        }))
+                      }
+                      placeholder="Briefly describe your issue"
+                      maxLength={180}
+                      className="mt-2 w-full rounded-xl border border-black/15 bg-[#faf9f6] px-4 py-3 text-sm outline-none placeholder:text-black/25 focus:border-black/30"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-[0.15em] text-black/40">
+                      Message
+                    </label>
+
+                    <textarea
+                      value={ticketForm.message}
+                      onChange={(e) =>
+                        setTicketForm((current) => ({
+                          ...current,
+                          message: e.target.value,
+                        }))
+                      }
+                      placeholder="Explain your issue in detail..."
+                      rows={6}
+                      maxLength={4000}
+                      className="mt-2 w-full resize-none rounded-xl border border-black/15 bg-[#faf9f6] px-4 py-3 text-sm leading-6 outline-none placeholder:text-black/25 focus:border-black/30"
+                    />
+
+                    <p className="mt-2 text-right text-[11px] text-black/30">
+                      {ticketForm.message.length}/4000
+                    </p>
+                  </div>
+
+                  {ticketError && (
+                    <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
+                      {ticketError}
+                    </div>
+                  )}
+
+                  {ticketSuccess && (
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                      <p className="text-sm leading-6 text-emerald-700">
+                        {ticketSuccess}
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={() => setTicketSuccess(null)}
+                        className="mt-2 text-xs font-semibold text-emerald-800 underline underline-offset-4"
+                      >
+                        Create another ticket
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={closeSupportForm}
+                      disabled={submittingTicket}
+                      className="rounded-full border border-black/15 px-6 py-3 text-sm font-medium transition hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={submitTicket}
+                      disabled={
+                        submittingTicket ||
+                        loadingUser ||
+                        !userId
+                      }
+                      className="rounded-full bg-[#171717] px-7 py-3 text-sm font-medium text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {submittingTicket
+                        ? "Sending..."
+                        : "Send Support Request"}
+                    </button>
+                  </div>
+
+                  <p className="text-center text-[11px] leading-5 text-black/30">
+                    Your support request will be securely attached to
+                    your A&G account.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
