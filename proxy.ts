@@ -6,14 +6,14 @@ export async function proxy(request: NextRequest) {
     request,
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   const supabaseKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  // Prevent Proxy from crashing if Supabase environment variables
-  // are missing or incorrectly configured.
+  // Prevent Proxy from crashing if Supabase environment
+  // variables are missing or incorrectly configured.
   if (!supabaseUrl || !supabaseKey) {
     console.error(
       "Supabase environment variables are missing in Proxy."
@@ -32,9 +32,11 @@ export async function proxy(request: NextRequest) {
         },
 
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value);
-          });
+          cookiesToSet.forEach(
+            ({ name, value }) => {
+              request.cookies.set(name, value);
+            }
+          );
 
           response = NextResponse.next({
             request,
@@ -99,9 +101,6 @@ export async function proxy(request: NextRequest) {
 
   /*
    * AUTHOR ROUTES
-   *
-   * If there is no Supabase session,
-   * send the user to Author Login.
    */
   if (isProtectedAuthorRoute && !user) {
     const loginUrl = request.nextUrl.clone();
@@ -117,9 +116,6 @@ export async function proxy(request: NextRequest) {
 
   /*
    * ADMIN ROUTES
-   *
-   * If there is no Supabase session,
-   * send the user to Admin Login.
    */
   if (isProtectedAdminRoute && !user) {
     const adminLoginUrl =

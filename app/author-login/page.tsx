@@ -40,15 +40,18 @@ export default function AuthorLogin() {
         });
 
       if (error) {
+        console.error("Login error:", error);
+
         setLoginError(
-          "Invalid email or password. Please try again."
+          `Login error: ${error.message}`
         );
+
         return;
       }
 
       if (!data.session || !data.user) {
         setLoginError(
-          "Login failed. No active session was created. Please try again."
+          "Login failed. No active session was created."
         );
         return;
       }
@@ -58,9 +61,13 @@ export default function AuthorLogin() {
       );
 
       router.replace("/author-dashboard");
-    } catch {
+    } catch (error) {
+      console.error("Login exception:", error);
+
       setLoginError(
-        "Something went wrong while signing in. Please try again."
+        error instanceof Error
+          ? `Login error: ${error.message}`
+          : "Something went wrong while signing in."
       );
     } finally {
       setLoading(false);
@@ -90,15 +97,26 @@ export default function AuthorLogin() {
         });
 
       if (error) {
+        console.error("Google login error:", error);
+
         setLoginError(
-          "Unable to continue with Google. Please try again."
+          `Google login error: ${error.message}`
         );
+
         setGoogleLoading(false);
       }
-    } catch {
-      setLoginError(
-        "Something went wrong while connecting to Google."
+    } catch (error) {
+      console.error(
+        "Google login exception:",
+        error
       );
+
+      setLoginError(
+        error instanceof Error
+          ? `Google login error: ${error.message}`
+          : "Something went wrong while connecting to Google."
+      );
+
       setGoogleLoading(false);
     }
   };
@@ -155,7 +173,7 @@ export default function AuthorLogin() {
       setResetMessage(
         error instanceof Error
           ? `Password reset error: ${error.message}`
-          : "Something went wrong while sending the reset link. Please try again."
+          : "Something went wrong while sending the reset link."
       );
     } finally {
       setResetLoading(false);
@@ -265,14 +283,14 @@ export default function AuthorLogin() {
 
               {/* Login Error */}
               {loginError && (
-                <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-700">
+                <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm leading-6 text-red-700">
                   {loginError}
                 </div>
               )}
 
               {/* Reset Message */}
               {resetMessage && (
-                <div className="mb-6 rounded-xl border border-black/10 bg-[#faf9f6] px-4 py-3.5 text-sm text-black/65">
+                <div className="mb-6 rounded-xl border border-black/10 bg-[#faf9f6] px-4 py-3.5 text-sm leading-6 text-black/65">
                   {resetMessage}
                 </div>
               )}

@@ -8,12 +8,17 @@ export async function createServerSupabaseClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   const supabaseKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabaseUrl) {
     throw new Error(
-      "Supabase URL or Key is missing from environment variables."
+      "NEXT_PUBLIC_SUPABASE_URL is missing."
+    );
+  }
+
+  if (!supabaseKey) {
+    throw new Error(
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is missing."
     );
   }
 
@@ -38,8 +43,8 @@ export async function createServerSupabaseClient() {
               }
             );
           } catch {
-            // Cookie writes can fail in Server Components.
-            // Session refresh is handled by proxy.ts.
+            // Cookie setting can fail in Server Components.
+            // The proxy handles session refresh.
           }
         },
       },

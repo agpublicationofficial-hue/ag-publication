@@ -12,7 +12,7 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   const supabaseKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   if (!supabaseUrl) {
     throw new Error(
@@ -22,7 +22,7 @@ export function createClient() {
 
   if (!supabaseKey) {
     throw new Error(
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY is missing."
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is missing."
     );
   }
 
