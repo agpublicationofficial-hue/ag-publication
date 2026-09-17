@@ -31,6 +31,14 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "A&G PUBLICATION",
+  url: "https://ag-publication.vercel.app/",
+  logo: "https://ag-publication.vercel.app/ag-logo.png",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,6 +46,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+      </head>
+
       <body>
         {children}
 
